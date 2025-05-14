@@ -118,7 +118,10 @@ const resources = {
       
       // Article page
       'article.not.found': 'Article not found',
-      'subjects': 'Subjects'
+      'subjects': 'Subjects',
+      'back.to.subjects': 'Back to Subjects',
+      'no.articles.found': 'No articles found in this category',
+      'available.in.multiple.languages': 'available in multiple languages'
     }
   },
   fr: {
