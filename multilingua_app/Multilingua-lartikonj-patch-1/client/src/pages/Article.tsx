@@ -1,51 +1,37 @@
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { useRoute, Link } from "wouter";
+import { useRoute } from "wouter";
 import { Article, Subject } from "@shared/schema";
 import { format } from "date-fns";
 import Layout from "@/components/Layout";
 import Breadcrumb from "@/components/Breadcrumb";
 import LanguageBadge from "@/components/LanguageBadge";
 import { useLanguage } from "@/providers/LanguageProvider";
-import { getArticleBySlug, getSubjectBySlug } from "@/data/api";
-import NotFound from "./not-found";
 
 export default function ArticlePage() {
   const { t } = useTranslation();
   const { language } = useLanguage();
-  const [match, params] = useRoute("/subject/:subjectSlug/:slug");
-  
-  if (!match || !params) {
-    return <NotFound />;
-  }
-  
-  const { subjectSlug, slug } = params;
   
   // Fetch article data
-  const { data: article, isLoading: isLoadingArticle } = useQuery({
-    queryKey: ["article", slug],
-    queryFn: () => getArticleBySlug(slug),
+  const { data: article, isLoading: isLoadingArticle } = useQuery<Article>({
+    queryKey: [`/api/articles/${slug}`],
   });
   
   // Fetch subject for breadcrumb
-  const { data: subject, isLoading: isLoadingSubject } = useQuery({
-    queryKey: ["subject", subjectSlug],
-    queryFn: () => getSubjectBySlug(subjectSlug),
-    enabled: !!subjectSlug,
+  const { data: subject, isLoading: isLoadingSubject } = useQuery<Subject>({
+    queryKey: [`/api/subjects/${article?.subjectId}`],
+    enabled: !!article?.subjectId,
   });
   
   const isLoading = isLoadingArticle || isLoadingSubject;
   
   // Get the appropriate translation or fall back to English
-  const translations = article?.translations as Record<string, { 
-    title: string; 
-    excerpt: string;
-    content: string;
-  }> | undefined;
+  const translation = article?.translations[language as keyof typeof article.translations] || 
+                     article?.translations.en;
+  const [match, params] = useRoute("/subject/:subjectSlug/:slug");
   
-  const translation = translations && 
-    (translations[language] || translations.en);
-  
+  if (!match) return <NotFound />;
+  const { subjectSlug, slug } = params!;
   return (
     <Layout>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">

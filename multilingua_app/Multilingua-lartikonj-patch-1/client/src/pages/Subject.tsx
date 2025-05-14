@@ -1,11 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { useRoute, Link } from "wouter";
+import { useRoute } from "wouter";
 import { Subject, Article } from "@shared/schema";
 import Layout from "@/components/Layout";
 import Breadcrumb from "@/components/Breadcrumb";
 import ArticleCard from "@/components/ArticleCard";
-import { getSubjectBySlug, getArticlesBySubject } from "@/data/api";
 
 export default function SubjectPage() {
   const { t } = useTranslation();
@@ -13,15 +12,13 @@ export default function SubjectPage() {
   const slug = params?.slug || "";
   
   // Fetch subject data
-  const { data: subject, isLoading: isLoadingSubject } = useQuery({
-    queryKey: ["subject", slug],
-    queryFn: () => getSubjectBySlug(slug),
+  const { data: subject, isLoading: isLoadingSubject } = useQuery<Subject>({
+    queryKey: [`/api/subjects/${slug}`],
   });
   
   // Fetch articles for this subject
-  const { data: articles = [], isLoading: isLoadingArticles } = useQuery({
-    queryKey: ["articles", subject?.id],
-    queryFn: () => getArticlesBySubject(subject?.id || 0),
+  const { data: articles, isLoading: isLoadingArticles } = useQuery<Article[]>({
+    queryKey: [`/api/articles/subject/${subject?.id}`],
     enabled: !!subject?.id,
   });
   
@@ -87,19 +84,12 @@ export default function SubjectPage() {
           articles && articles.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {articles.map(article => (
-                <ArticleCard 
-                  key={article.id} 
-                  article={article} 
-                  subjectSlug={slug} 
-                />
+                <ArticleCard key={article.id} article={article} />
               ))}
             </div>
           ) : (
             <div className="text-center py-12">
               <p className="text-gray-500 dark:text-gray-400">{t('no.articles.found')}</p>
-              <Link href="/subjects">
-                <a className="inline-block mt-4 text-primary hover:underline">{t('back.to.subjects')}</a>
-              </Link>
             </div>
           )
         )}
