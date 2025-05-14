@@ -6,12 +6,12 @@ import { Article, Subject } from '@shared/schema';
 // Get all subjects
 export async function getSubjects(): Promise<Subject[]> {
   return [
-    { id: 1, name: "Technology", slug: "technology", icon: "ri-computer-line", articleCount: 3 },
-    { id: 2, name: "Science", slug: "science", icon: "ri-flask-line", articleCount: 3 },
-    { id: 3, name: "Environment", slug: "environment", icon: "ri-plant-line", articleCount: 2 },
-    { id: 4, name: "Health", slug: "health", icon: "ri-heart-pulse-line", articleCount: 2 },
-    { id: 5, name: "Arts & Culture", slug: "arts-culture", icon: "ri-palette-line", articleCount: 2 },
-    { id: 6, name: "Travel", slug: "travel", icon: "ri-plane-line", articleCount: 2 }
+    { id: 1, name: "Technology", slug: "technology", icon: "ri-computer-line", articleCount: 1 },
+    { id: 2, name: "Science", slug: "science", icon: "ri-flask-line", articleCount: 2 },
+    { id: 3, name: "Environment", slug: "environment", icon: "ri-plant-line", articleCount: 1 },
+    { id: 4, name: "Health", slug: "health", icon: "ri-heart-pulse-line", articleCount: 1 },
+    { id: 5, name: "Arts & Culture", slug: "arts-culture", icon: "ri-palette-line", articleCount: 1 },
+    { id: 6, name: "Travel", slug: "travel", icon: "ri-plane-line", articleCount: 1 }
   ];
 }
 
