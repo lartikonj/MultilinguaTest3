@@ -6,7 +6,6 @@ import Home from "@/pages/Home";
 import Subject from "@/pages/Subject";
 import Article from "@/pages/Article";
 import About from "@/pages/About";
-import Subjects from "@/pages/Subjects";
 import NotFound from "@/pages/not-found";
 
 
@@ -17,7 +16,6 @@ function Router() {
       <Route path="/subject/:slug" component={Subject} />
       <Route path="/subject/:subjectSlug/:slug" component={Article} />
       <Route path="/about" component={About} />
-      <Route path="/subjects" component={Subjects} />
       <Route component={NotFound} />
     </Switch>
   );

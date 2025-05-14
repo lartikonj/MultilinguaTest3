@@ -3,78 +3,80 @@ import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { Subject } from "@shared/schema";
 import Layout from "@/components/Layout";
-import Breadcrumb from "@/components/Breadcrumb";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { getSubjects } from "@/data/api";
 
 export default function SubjectsPage() {
   const { t } = useTranslation();
   
   // Fetch all subjects
-  const { data: subjects, isLoading } = useQuery<Subject[]>({
-    queryKey: ["/api/subjects"],
+  const { data: subjects = [], isLoading } = useQuery({
+    queryKey: ["subjects"],
+    queryFn: getSubjects
   });
   
   return (
     <Layout>
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Breadcrumb */}
-        <div className="mb-8">
-          <Breadcrumb 
-            items={[
-              { name: t('subjects'), translationKey: "subjects" }
-            ]} 
-          />
-        </div>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <h1 className="text-3xl font-bold mb-8">{t('nav.subjects')}</h1>
         
-        {/* Page Header */}
-        <div className="mb-12 text-center">
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">{t('explore.by.subject')}</h1>
-          <p className="text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-            {t('subjects.description')}
-          </p>
-        </div>
-        
-        {/* Subjects Grid */}
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3, 4, 5, 6].map(i => (
-              <div key={i} className="bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden animate-pulse h-48">
-                <div className="p-6 flex flex-col items-center justify-center space-y-4 h-full">
-                  <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-800"></div>
-                  <div className="h-6 bg-gray-200 dark:bg-gray-800 rounded w-24"></div>
-                  <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-16"></div>
-                </div>
-              </div>
+          // Loading skeleton
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 animate-pulse">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="bg-gray-100 dark:bg-gray-800 rounded-xl p-8 h-48"></div>
             ))}
           </div>
         ) : (
-          subjects && subjects.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {subjects.map(subject => (
-                <Link key={subject.id} href={`/subject/${subject.slug}`}>
-                  <Card className="bg-white dark:bg-gray-900 hover:shadow-md transition-shadow cursor-pointer h-full">
-                    <CardContent className="p-6 flex flex-col items-center justify-center space-y-4">
-                      <div className="w-16 h-16 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
-                        <i className={`${subject.icon} text-2xl text-primary-700 dark:text-primary-400`}></i>
-                      </div>
-                      <h3 className="text-xl font-semibold">{t(subject.slug)}</h3>
-                    </CardContent>
-                    <CardFooter className="text-center border-t border-gray-200 dark:border-gray-800 py-3 px-6">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        {subject.articleCount} {t('articles')}
-                      </span>
-                    </CardFooter>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-gray-500 dark:text-gray-400">{t('no.subjects.found')}</p>
-            </div>
-          )
+          // Subjects grid
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            {subjects.map((subject) => (
+              <SubjectCard key={subject.id} subject={subject} />
+            ))}
+          </div>
         )}
       </div>
     </Layout>
+  );
+}
+
+interface SubjectCardProps {
+  subject: Subject;
+}
+
+function SubjectCard({ subject }: SubjectCardProps) {
+  const { t } = useTranslation();
+  
+  const getGradientBySubject = (subjectSlug: string) => {
+    const gradients: Record<string, string> = {
+      "technology": "from-blue-500 to-indigo-500",
+      "science": "from-indigo-500 to-purple-500",
+      "environment": "from-green-500 to-teal-500",
+      "health": "from-red-500 to-pink-500",
+      "arts-culture": "from-yellow-500 to-orange-500",
+      "travel": "from-purple-500 to-pink-500"
+    };
+    
+    return gradients[subjectSlug] || "from-gray-500 to-gray-700";
+  };
+  
+  return (
+    <Link href={`/subject/${subject.slug}`}>
+      <div className="group cursor-pointer">
+        <div className={`rounded-xl shadow-sm overflow-hidden border border-gray-200 dark:border-gray-800 transition-all bg-gradient-to-br ${getGradientBySubject(subject.slug)} hover:shadow-md h-48 flex items-center justify-center relative`}>
+          {/* Icon */}
+          <div className="text-5xl text-white mb-4">
+            <i className={subject.icon}></i>
+          </div>
+          
+          {/* Overlay content */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/50 to-transparent flex flex-col justify-end p-6">
+            <h3 className="text-xl font-bold text-white mb-1">{t(subject.slug)}</h3>
+            <p className="text-white/80 text-sm">
+              {subject.articleCount} {t('articles')}
+            </p>
+          </div>
+        </div>
+      </div>
+    </Link>
   );
 }

@@ -8,6 +8,7 @@ import Breadcrumb from "@/components/Breadcrumb";
 import LanguageBadge from "@/components/LanguageBadge";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { getArticleBySlug, getSubjectBySlug } from "@/data/api";
+import NotFound from "./not-found";
 
 export default function ArticlePage() {
   const { t } = useTranslation();
@@ -15,17 +16,7 @@ export default function ArticlePage() {
   const [match, params] = useRoute("/subject/:subjectSlug/:slug");
   
   if (!match || !params) {
-    return (
-      <Layout>
-        <div className="container py-16 text-center">
-          <h1 className="text-3xl font-bold mb-4">{t('not.found.title')}</h1>
-          <p className="mb-6">{t('not.found.description')}</p>
-          <Link href="/">
-            <a className="text-primary hover:underline">{t('back.home')}</a>
-          </Link>
-        </div>
-      </Layout>
-    );
+    return <NotFound />;
   }
   
   const { subjectSlug, slug } = params;
@@ -54,6 +45,7 @@ export default function ArticlePage() {
   
   const translation = translations && 
     (translations[language] || translations.en);
+  
   return (
     <Layout>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
