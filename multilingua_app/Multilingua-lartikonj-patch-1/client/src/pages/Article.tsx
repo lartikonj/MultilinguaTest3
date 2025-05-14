@@ -11,16 +11,6 @@ import { useLanguage } from "@/providers/LanguageProvider";
 export default function ArticlePage() {
   const { t } = useTranslation();
   const { language } = useLanguage();
-  const [match, params] = useRoute("/subject/:subjectSlug/:slug");
-  
-  if (!match) {
-    return <div className="text-center py-12">
-      <h1 className="text-2xl font-bold">Page Not Found</h1>
-      <p className="text-gray-500 dark:text-gray-400">The page you are looking for does not exist.</p>
-    </div>;
-  }
-  
-  const { subjectSlug, slug } = params!;
   
   // Fetch article data
   const { data: article, isLoading: isLoadingArticle } = useQuery<Article>({
@@ -38,6 +28,10 @@ export default function ArticlePage() {
   // Get the appropriate translation or fall back to English
   const translation = article?.translations[language as keyof typeof article.translations] || 
                      article?.translations.en;
+  const [match, params] = useRoute("/subject/:subjectSlug/:slug");
+  
+  if (!match) return <NotFound />;
+  const { subjectSlug, slug } = params!;
   return (
     <Layout>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">

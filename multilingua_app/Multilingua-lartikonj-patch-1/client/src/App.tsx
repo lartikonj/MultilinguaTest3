@@ -7,12 +7,14 @@ import Subject from "@/pages/Subject";
 import Article from "@/pages/Article";
 import About from "@/pages/About";
 import NotFound from "@/pages/not-found";
+import Subjects from "@/pages/Subjects";
 
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/subjects" component={Subjects} />
       <Route path="/subject/:slug" component={Subject} />
       <Route path="/subject/:subjectSlug/:slug" component={Article} />
       <Route path="/about" component={About} />
