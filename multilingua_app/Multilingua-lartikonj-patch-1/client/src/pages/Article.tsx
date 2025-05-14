@@ -8,9 +8,30 @@ import Breadcrumb from "@/components/Breadcrumb";
 import LanguageBadge from "@/components/LanguageBadge";
 import { useLanguage } from "@/providers/LanguageProvider";
 
+const NotFound = () => {
+  const { t } = useTranslation();
+  return (
+    <Layout>
+      <div className="container mx-auto px-4 py-12 text-center">
+        <h1 className="text-3xl font-bold mb-4">{t('page.not.found')}</h1>
+        <p className="text-gray-500 dark:text-gray-400 mb-6">{t('page.not.found.description')}</p>
+      </div>
+    </Layout>
+  );
+};
+
 export default function ArticlePage() {
   const { t } = useTranslation();
   const { language } = useLanguage();
+  
+  // Get the route parameters first
+  const [match, params] = useRoute("/subject/:subjectSlug/:slug");
+  
+  // Return early if no match
+  if (!match) return <NotFound />;
+  
+  // Now it's safe to destructure params
+  const { subjectSlug, slug } = params!;
   
   // Fetch article data
   const { data: article, isLoading: isLoadingArticle } = useQuery<Article>({
@@ -26,12 +47,9 @@ export default function ArticlePage() {
   const isLoading = isLoadingArticle || isLoadingSubject;
   
   // Get the appropriate translation or fall back to English
-  const translation = article?.translations[language as keyof typeof article.translations] || 
-                     article?.translations.en;
-  const [match, params] = useRoute("/subject/:subjectSlug/:slug");
-  
-  if (!match) return <NotFound />;
-  const { subjectSlug, slug } = params!;
+  const translation = article?.translations && 
+    (article.translations[language as keyof typeof article.translations] || 
+     article.translations.en);
   return (
     <Layout>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
