@@ -10,7 +10,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@tanstack/react-query": "^5.76.1",
     "date-fns": "^4.1.0",
-    "tsx": "^4.19.4"
+    "express": "^5.1.0",
+    "i18next": "^25.1.2",
+    "react-i18next": "^15.5.1",
+    "tsx": "^4.19.4",
+    "wouter": "^3.7.0"
   }
 }
