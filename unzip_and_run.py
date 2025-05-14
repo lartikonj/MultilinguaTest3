@@ -46,7 +46,15 @@ def extract_zip(zip_path):
     # Remove the extraction directory if it exists
     if os.path.exists(EXTRACT_DIR):
         print(f"Removing existing directory: {EXTRACT_DIR}")
-        shutil.rmtree(EXTRACT_DIR)
+        try:
+            shutil.rmtree(EXTRACT_DIR)
+        except Exception as e:
+            print(f"Warning: Could not remove existing directory: {e}")
+            # Try a different approach - move it instead
+            backup_dir = f"{EXTRACT_DIR}_backup"
+            if os.path.exists(backup_dir):
+                shutil.rmtree(backup_dir)
+            shutil.move(EXTRACT_DIR, backup_dir)
     
     # Create the extraction directory
     os.makedirs(EXTRACT_DIR, exist_ok=True)
@@ -62,32 +70,51 @@ def detect_project_type(extract_dir):
     """Detect whether the project is Node.js or Python based."""
     print("Detecting project type...")
     
-    # Check for Node.js project indicators
+    # Check subdirectories first
+    for root, dirs, files in os.walk(extract_dir):
+        for directory in dirs:
+            sub_dir = os.path.join(root, directory)
+            
+            # Check for Node.js project indicators in subdirectory
+            has_package_json = os.path.exists(os.path.join(sub_dir, "package.json"))
+            if has_package_json:
+                print(f"Detected Node.js project in subdirectory: {directory}")
+                return "nodejs", sub_dir
+    
+    # Check for Node.js project indicators in main directory
     has_package_json = os.path.exists(os.path.join(extract_dir, "package.json"))
     has_node_modules = os.path.exists(os.path.join(extract_dir, "node_modules"))
     
     # Check for Python project indicators
     has_requirements_txt = os.path.exists(os.path.join(extract_dir, "requirements.txt"))
     has_setup_py = os.path.exists(os.path.join(extract_dir, "setup.py"))
-    has_py_files = any(f.endswith('.py') for f in os.listdir(extract_dir) if os.path.isfile(os.path.join(extract_dir, f)))
+    
+    try:
+        has_py_files = any(f.endswith('.py') for f in os.listdir(extract_dir) if os.path.isfile(os.path.join(extract_dir, f)))
+    except Exception as e:
+        print(f"Warning: Error listing directory contents: {e}")
+        has_py_files = False
     
     if has_package_json or has_node_modules:
         print("Detected Node.js project")
-        return "nodejs"
+        return "nodejs", extract_dir
     elif has_requirements_txt or has_setup_py or has_py_files:
         print("Detected Python project")
-        return "python"
+        return "python", extract_dir
     else:
         # Look for common web files
-        has_html = any(f.endswith('.html') for f in os.listdir(extract_dir) if os.path.isfile(os.path.join(extract_dir, f)))
-        has_js = any(f.endswith('.js') for f in os.listdir(extract_dir) if os.path.isfile(os.path.join(extract_dir, f)))
-        
-        if has_html and has_js:
-            print("Detected static web project")
-            return "static"
+        try:
+            has_html = any(f.endswith('.html') for f in os.listdir(extract_dir) if os.path.isfile(os.path.join(extract_dir, f)))
+            has_js = any(f.endswith('.js') for f in os.listdir(extract_dir) if os.path.isfile(os.path.join(extract_dir, f)))
+            
+            if has_html and has_js:
+                print("Detected static web project")
+                return "static", extract_dir
+        except Exception as e:
+            print(f"Warning: Error checking for web files: {e}")
         
         print("Could not determine project type. Assuming it's a static web project.")
-        return "unknown"
+        return "unknown", extract_dir
 
 def setup_nodejs_project(extract_dir):
     """Set up a Node.js project."""
@@ -219,16 +246,16 @@ def main():
     extract_dir = extract_zip(zip_path)
     
     # Detect project type
-    project_type = detect_project_type(extract_dir)
+    project_type, project_dir = detect_project_type(extract_dir)
     
     # Setup and run the project based on its type
     start_command = None
     if project_type == "nodejs":
-        start_command = setup_nodejs_project(extract_dir)
+        start_command = setup_nodejs_project(project_dir)
     elif project_type == "python":
-        start_command = setup_python_project(extract_dir)
+        start_command = setup_python_project(project_dir)
     elif project_type == "static" or project_type == "unknown":
-        start_command = setup_static_project(extract_dir)
+        start_command = setup_static_project(project_dir)
     
     # Run the application
     if start_command:
@@ -237,7 +264,10 @@ def main():
         if os.path.exists(analyzer_path):
             print("Analyzing project structure...")
             try:
-                subprocess.run([sys.executable, analyzer_path, extract_dir])
+                if os.path.exists(project_dir):
+                    subprocess.run([sys.executable, analyzer_path, project_dir])
+                else:
+                    print(f"Error: Directory '{project_dir}' does not exist.")
             except Exception as e:
                 print(f"Warning: Failed to analyze project: {e}")
         
